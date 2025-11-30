@@ -3,92 +3,137 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>மாம்பழ ஊறுகாய் — உடனடி ஆர்டர்</title>
+  <title>மாங்காய் ஊறுகாய் — உடனடி ஆர்டர்</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:16px; color:#222; background:#fff}
-    .container{max-width:620px;margin:18px auto;padding:18px;border-radius:10px;border:1px solid #eee;box-shadow:0 6px 18px rgba(0,0,0,.04)}
-    h1{font-size:22px;margin:6px 0 8px;text-align:center}
-    p.lead{color:#444;margin:0 0 14px;text-align:center;font-size:15px}
-    .product{padding:12px;border-radius:10px;border:1px solid #f0f0f0;background:#fff;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    :root{--accent:#d35400}
+    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:20px; color:#111; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh}
+    .card{width:100%;max-width:520px;border-radius:12px;padding:20px;border:1px solid #eee;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+    h1{font-size:24px;margin:4px 0 6px;text-align:center}
+    p.lead{color:#555;margin:0 0 14px;text-align:center;font-size:15px}
+    .product{padding:12px;border-radius:10px;border:1px solid #f5f5f5;background:#fff;display:flex;align-items:center;gap:12px;margin-bottom:12px}
     .product .info{flex:1}
-    .product .title{font-weight:700;font-size:16px}
-    .product .meta{color:#666;font-size:14px;margin-top:4px}
-    textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:8px;resize:vertical}
-    .btn{display:inline-block;background:#d35400;color:#fff;padding:12px 18px;border-radius:8px;border:none;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:12px}
+    .product .title{font-weight:800;font-size:18px}
+    .product .meta{color:#666;font-size:14px;margin-top:6px}
+    .qty-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px}
+    .qty-btn{width:44px;height:44px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:20px;cursor:pointer}
+    .qty-display{min-width:140px;text-align:center;font-weight:700;font-size:16px}
+    textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:10px;resize:vertical}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 18px;border-radius:8px;border:none;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:14px;width:100%}
     .small{font-size:13px;color:#666;margin-top:10px;text-align:center}
     .link{color:#0b64c6;word-break:break-all}
     #fallback{display:none;margin-top:12px;text-align:center}
+    @media (max-width:420px){ .qty-display{min-width:110px} h1{font-size:20px} }
   </style>
 </head>
 <body>
-  <div class="container" role="main" aria-labelledby="pageTitle">
-    <h1 id="pageTitle">மாம்பழ ஊறுகாய்</h1>
-    <p class="lead">ஒரே கிளிக் — உங்கள் ஆர்டர் தயார். எதையும் பகிர வேண்டாம்.</p>
+  <div class="card" role="main" aria-labelledby="pageTitle">
+    <h1 id="pageTitle">மாங்காய் ஊறுகாய்</h1>
+    <p class="lead">அளவு அடிப்படை: 5 கிலோ. எண்ணிக்கை அதிகமா? '+' அழுத்தி கூட்டவும். எதையும் பகிர வேண்டாம்.</p>
 
-    <!-- Single product (mango pickle) — no selection required -->
     <div class="product" aria-hidden="false">
       <div class="info">
-        <div class="title">மாம்பழ ஊறுகாய்</div>
-        <div class="meta">250g — ₹120</div>
+        <div class="title">மாங்காய் ஊறுகாய்</div>
+        <div class="meta">ஒரு யூனிட் = 5 கிலோ</div>
       </div>
     </div>
 
-    <!-- Optional delivery address only (customer not required to give name or phone) -->
-    <label for="address" style="font-weight:600;color:#333">முகவரி / குறிப்பு (விரும்பின் மட்டும்)</label>
+    <!-- Quantity controls: each unit = 5 KG -->
+    <div style="margin-top:6px; text-align:center;">
+      <label for="qty" style="font-weight:700;color:#333;display:block;margin-bottom:8px">அளவு தேர்வு (கிலோகிராம்)</label>
+      <div class="qty-row" role="group" aria-label="அளவு">
+        <button id="decr" class="qty-btn" aria-label="குறைக்க" title="குறைக்க">−</button>
+        <div class="qty-display" id="qtyDisplay" aria-live="polite">5 கிலோ</div>
+        <button id="incr" class="qty-btn" aria-label="சேர்க்க" title="சேர்க்க">＋</button>
+      </div>
+      <div style="margin-top:8px;text-align:center;color:#666;font-size:13px">குறைந்தபட்சம் 5 கிலோ. ஒவ்வொரு கிளிக் 5 கிலோ ஆகும்.</div>
+    </div>
+
+    <!-- Optional delivery address only (not required) -->
+    <label for="address" style="font-weight:600;color:#333;display:block;margin-top:14px">முகவரி / குறிப்பு (விரும்பின் மட்டும்)</label>
     <textarea id="address" rows="3" placeholder="வீட்டு முகவரி, நகரம், PIN அல்லது குறிப்புகள் (விருப்பம்)"></textarea>
 
-    <div style="text-align:center">
+    <div style="margin-top:12px">
       <button class="btn" id="submitBtn" onclick="submitOrder()">ஆர்டர் அனுப்பு</button>
     </div>
 
-    <p class="small">வாட்சாப்ப் தானாக திறக்கப்படும்; பிறகு 'Send'ஐ தட்டவும்.</p>
+    <p class="small">வாட்சாப்ப் தானாக திறக்கப்படும்; பிறகு 'Send' ஐ தட்டவும். (உங்கள் எண்ணை பகிர வேண்டாம்)</p>
 
     <div id="fallback">
-      <p class="small">WhatsApp திறக்கப்படவில்லை என்றால், கீழே உள்ள லிங்கை திறக்கவும் அல்லது நகலெடுத்து ஒட்டி அனுப்பவும்:</p>
+      <p class="small">WhatsApp திறக்கப்படவில்லை என்றால், கீழ் லிங்கை திறக்கவும் அல்லது நகலெடுத்து ஒட்டவும்:</p>
       <a id="waFallbackLink" class="link" target="_blank" rel="noopener"></a>
     </div>
   </div>
 
   <script>
-    // PHONE is already provided (keep as-is). Must be digits only, country code + number.
+    // PHONE is already provided and should be digits only (country code + number).
+    // (Example kept from your file)
     const PHONE = "916364802223";
 
-    function submitOrder(){
-      // Single product details (Tamil). No shop name included per request.
-      const product = "மாம்பழ ஊறுகாய் - 250g | ₹120";
-      const quantity = "1";
+    // Quantity logic: each unit = 5 KG. Start with 1 unit (5 KG).
+    let units = 1;
+    const UNIT_KG = 5;
 
+    const qtyDisplay = document.getElementById('qtyDisplay');
+    const incrBtn = document.getElementById('incr');
+    const decrBtn = document.getElementById('decr');
+
+    function renderQty(){
+      const kg = units * UNIT_KG;
+      qtyDisplay.textContent = `${kg} கிலோ`;
+      // disable decrement when units == 1
+      decrBtn.disabled = units <= 1;
+      decrBtn.style.opacity = units <= 1 ? 0.5 : 1;
+    }
+
+    incrBtn.addEventListener('click', () => {
+      units += 1;
+      renderQty();
+    });
+
+    decrBtn.addEventListener('click', () => {
+      if(units > 1){
+        units -= 1;
+        renderQty();
+      }
+    });
+
+    // initial render
+    renderQty();
+
+    function submitOrder(){
+      // Build Tamil order message; no shop name, no buyer name/phone.
+      const product = "மாங்காய் ஊறுகாய்";
+      const totalKg = units * UNIT_KG;
       const address = document.getElementById('address').value.trim();
 
-      // Build minimal Tamil message; do NOT include shop name or ask for buyer name/phone.
       let text = "ஆர்டர்:\n";
       text += product + "\n";
-      text += "அளவு: " + quantity + "\n";
+      text += "அளவு: " + totalKg + " கிலோ\n";
       if(address) text += "முகவரி: " + address + "\n";
       text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.";
 
       const encoded = encodeURIComponent(text);
 
-      // Validate PHONE format
+      // PHONE validation
       if(!PHONE || PHONE.includes('+') || PHONE.includes(' ') || !/^\d+$/.test(PHONE)){
         alert('Owner: HTML கோப்பில் PHONE மாறியை சரியாக (எண்கள் மட்டும், உதாரணம்: 919812345678) அமைக்கவும்.');
-        return;
+        return false;
       }
 
       const waLink = `https://wa.me/${PHONE}?text=${encoded}`;
 
-      // Attempt to open WhatsApp (user action triggered by button click)
       try {
+        // user action triggered; open whatsapp
         window.location.href = waLink;
 
-        // Show fallback link after short delay (in case redirect blocked)
+        // show fallback link shortly after
         setTimeout(() => {
           const fallback = document.getElementById('fallback');
           const fallbackLink = document.getElementById('waFallbackLink');
           fallbackLink.href = waLink;
           fallbackLink.textContent = waLink;
           fallback.style.display = 'block';
-        }, 1000);
+        }, 900);
       } catch (e) {
         const fallback = document.getElementById('fallback');
         const fallbackLink = document.getElementById('waFallbackLink');
