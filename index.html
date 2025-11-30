@@ -33,7 +33,7 @@
     <div class="product" aria-hidden="false">
       <div class="info">
         <div class="title">மாங்காய் ஊறுகாய்</div>
-        <div class="meta">ஒரு யூனிட் = 5 கிலோ</div>
+        <div class="meta">ஒன்றின் அளவு: 5 கிலோ</div>
       </div>
     </div>
 
@@ -66,7 +66,6 @@
 
   <script>
     // PHONE is already provided and should be digits only (country code + number).
-    // (Example kept from your file)
     const PHONE = "916364802223";
 
     // Quantity logic: each unit = 5 KG. Start with 1 unit (5 KG).
@@ -80,7 +79,6 @@
     function renderQty(){
       const kg = units * UNIT_KG;
       qtyDisplay.textContent = `${kg} கிலோ`;
-      // disable decrement when units == 1
       decrBtn.disabled = units <= 1;
       decrBtn.style.opacity = units <= 1 ? 0.5 : 1;
     }
@@ -123,7 +121,6 @@
       const waLink = `https://wa.me/${PHONE}?text=${encoded}`;
 
       try {
-        // user action triggered; open whatsapp
         window.location.href = waLink;
 
         // show fallback link shortly after
