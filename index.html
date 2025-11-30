@@ -68,6 +68,9 @@
     // PHONE is already provided and should be digits only (country code + number).
     const PHONE = "916364802223";
 
+    // URL to share back to customer so they can use it next time
+    const SELF_URL = "https://sivakumarselvam.github.io/check/index.html";
+
     // Quantity logic: each unit = 5 KG. Start with 1 unit (5 KG).
     let units = 1;
     const UNIT_KG = 5;
@@ -104,11 +107,14 @@
       const totalKg = units * UNIT_KG;
       const address = document.getElementById('address').value.trim();
 
+      // Message: order details + short Tamil sentence with the page link for next time
       let text = "ஆர்டர்:\n";
       text += product + "\n";
       text += "அளவு: " + totalKg + " கிலோ\n";
       if(address) text += "முகவரி: " + address + "\n";
-      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.";
+      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.\n\n";
+      text += "அடுத்தமுறை ஆர்டர் செய்வதற்கு இந்த லிங்கைப் பயன்படுத்தவும்:\n";
+      text += SELF_URL;
 
       const encoded = encodeURIComponent(text);
 
