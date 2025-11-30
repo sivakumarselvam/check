@@ -22,7 +22,10 @@
     .small{font-size:13px;color:#666;margin-top:10px;text-align:center}
     .link{color:#0b64c6;word-break:break-all}
     #fallback{display:none;margin-top:12px;text-align:center}
-    @media (max-width:420px){ .qty-display{min-width:110px} h1{font-size:20px} }
+    #status{margin-top:12px;text-align:center;font-weight:700}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .actions button{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    @media (max-width:420px){ .qty-display{min-width:110px} h1{font-size:20px} .actions{flex-direction:column} }
   </style>
 </head>
 <body>
@@ -53,31 +56,46 @@
     <textarea id="address" rows="3" placeholder="வீட்டு முகவரி, நகரம், PIN அல்லது குறிப்புகள் (விருப்பம்)"></textarea>
 
     <div style="margin-top:12px">
-      <button class="btn" id="submitBtn" onclick="submitOrder()">ஆர்டர் அனுப்பு</button>
+      <button class="btn" id="submitBtn">ஆர்டர் அனுப்பு</button>
     </div>
 
-    <p class="small">வாட்சாப்ப் தானாக திறக்கப்படும்; பிறகு 'Send' ஐ தட்டவும். (உங்கள் எண்ணை பகிர வேண்டாம்)</p>
+    <div class="actions" aria-hidden="false">
+      <button id="copyMsgBtn" title="செய்கை செய்தியை நகலெடுக்க">செய்தியை நகலெடுக்க</button>
+      <button id="showLinksBtn" title="கைமுறை லிங்குகளை காண்பி">மூலத்தின்மேல் கிளிக்</button>
+    </div>
+
+    <p class="small">குறிப்பு: கீழே உள்ளது பயனர்-பக்கம் மட்டும். இரண்டு வாட்ஸ்அப் நம்பர்களுக்கும் குறு-வருகை திறக்க முயற்சிக்கப்படும்; சில மொபைல் உலாவிகள் popup-ஐ தடை செய்தால் இரண்டாவது சாட் தானாக திறக்கப்படாது. (பயனர் ஒவ்வொரு சாட்டிலும் 'Send' தட்ட வேண்டும்)</p>
+
+    <div id="status" role="status" aria-live="polite"></div>
 
     <div id="fallback">
-      <p class="small">WhatsApp திறக்கப்படவில்லை என்றால், கீழ் லிங்கை திறக்கவும் அல்லது நகலெடுத்து ஒட்டவும்:</p>
-      <a id="waFallbackLink" class="link" target="_blank" rel="noopener"></a>
+      <p class="small">மனுவல் லிங்குகள் (தொலைபேசி மாற்றங்கள் செய்ய PHONE1/PHONE2 மதிப்புகளை நிரலிலே மாற்றவும்):</p>
+      <div><a id="link1" class="link" target="_blank" rel="noopener"></a></div>
+      <div style="margin-top:6px"><a id="link2" class="link" target="_blank" rel="noopener"></a></div>
     </div>
   </div>
 
   <script>
-    // PHONE is already provided and should be digits only (country code + number).
-    const PHONE = "916364802223";
+    // === IMPORTANT: Replace these two phone values with the two target numbers you want to notify.
+    // Use international format digits only (country code + number), no '+' and no spaces.
+    // Example: "919812345678"
+    const PHONE1 = "916364802223"; // first target (your original)
+    const PHONE2 = "919448509719"; // second target: replace this
 
-    // URL to share back to customer so they can use it next time
-    const SELF_URL = "https://sivakumarselvam.github.io/check/index.html";
-
-    // Quantity logic: each unit = 5 KG. Start with 1 unit (5 KG).
+    // Quantity logic
     let units = 1;
     const UNIT_KG = 5;
 
     const qtyDisplay = document.getElementById('qtyDisplay');
     const incrBtn = document.getElementById('incr');
     const decrBtn = document.getElementById('decr');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusEl = document.getElementById('status');
+    const fallback = document.getElementById('fallback');
+    const link1 = document.getElementById('link1');
+    const link2 = document.getElementById('link2');
+    const copyMsgBtn = document.getElementById('copyMsgBtn');
+    const showLinksBtn = document.getElementById('showLinksBtn');
 
     function renderQty(){
       const kg = units * UNIT_KG;
@@ -86,67 +104,84 @@
       decrBtn.style.opacity = units <= 1 ? 0.5 : 1;
     }
 
-    incrBtn.addEventListener('click', () => {
-      units += 1;
-      renderQty();
-    });
-
-    decrBtn.addEventListener('click', () => {
-      if(units > 1){
-        units -= 1;
-        renderQty();
-      }
-    });
-
-    // initial render
+    incrBtn.addEventListener('click', () => { units += 1; renderQty(); });
+    decrBtn.addEventListener('click', () => { if(units > 1){ units -= 1; renderQty(); } });
     renderQty();
 
-    function submitOrder(){
-      // Build Tamil order message; no shop name, no buyer name/phone.
+    function buildMessageText(){
       const product = "மாங்காய் ஊறுகாய்";
       const totalKg = units * UNIT_KG;
       const address = document.getElementById('address').value.trim();
 
-      // Message: order details + short Tamil sentence with the page link for next time
       let text = "ஆர்டர்:\n";
       text += product + "\n";
       text += "அளவு: " + totalKg + " கிலோ\n";
       if(address) text += "முகவரி: " + address + "\n";
-      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.\n\n";
-      text += "அடுத்தமுறை ஆர்டர் செய்வதற்கு இந்த லிங்கைப் பயன்படுத்தவும்:\n";
-      text += SELF_URL;
+      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.";
+      return text;
+    }
 
-      const encoded = encodeURIComponent(text);
+    function makeWaLink(phone, text){
+      // phone should be digits only (country code + number)
+      return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    }
 
-      // PHONE validation
-      if(!PHONE || PHONE.includes('+') || PHONE.includes(' ') || !/^\d+$/.test(PHONE)){
-        alert('Owner: HTML கோப்பில் PHONE மாறியை சரியாக (எண்கள் மட்டும், உதாரணம்: 919812345678) அமைக்கவும்.');
-        return false;
+    async function tryOpenTwoChats(){
+      // Validate PHONEs
+      if(!/^\d+$/.test(PHONE1) || !/^\d+$/.test(PHONE2) || PHONE2 === "REPLACE_WITH_SECOND_NUMBER"){
+        alert('Owner: தயவு செய்து PHONE1 மற்றும் PHONE2 ஆகியவற்றை HTML இல் எண்களாகச் சரியாக அமைக்கவும் (உதா: 919812345678).');
+        return;
       }
 
-      const waLink = `https://wa.me/${PHONE}?text=${encoded}`;
+      const text = buildMessageText();
+      const link1Url = makeWaLink(PHONE1, text);
+      const link2Url = makeWaLink(PHONE2, text);
 
+      statusEl.textContent = "வாட்ஸ்அப்புகள் திறக்கப்படுகின்றன — ஒவ்வொரு சாட்-இலும் Send தட்ட நினைவில் வையுங்கள்...";
+      // Attempt to open second chat in a new tab/window first (may be blocked)
       try {
-        window.location.href = waLink;
-
-        // show fallback link shortly after
+        const w = window.open(link2Url, '_blank');
+        // Redirect this tab to first chat (this typically opens WhatsApp app)
+        window.location.href = link1Url;
+        // Show fallback links after short delay in case popup blocked
         setTimeout(() => {
-          const fallback = document.getElementById('fallback');
-          const fallbackLink = document.getElementById('waFallbackLink');
-          fallbackLink.href = waLink;
-          fallbackLink.textContent = waLink;
+          link1.href = link1Url; link1.textContent = link1Url;
+          link2.href = link2Url; link2.textContent = link2Url;
           fallback.style.display = 'block';
         }, 900);
       } catch (e) {
-        const fallback = document.getElementById('fallback');
-        const fallbackLink = document.getElementById('waFallbackLink');
-        fallbackLink.href = waLink;
-        fallbackLink.textContent = waLink;
+        // If anything fails, show links for manual use
+        link1.href = link1Url; link1.textContent = link1Url;
+        link2.href = link2Url; link2.textContent = link2Url;
         fallback.style.display = 'block';
+        statusEl.textContent = "தொலைபேசி உலாவி சில popup-ஐ தடுத்தது; கீழ் லிங்குகளைத் திறக்கவும்.";
       }
-
-      return false;
     }
+
+    // copy message text to clipboard (for user convenience)
+    copyMsgBtn.addEventListener('click', async () => {
+      try {
+        const text = buildMessageText();
+        await navigator.clipboard.writeText(text);
+        statusEl.textContent = "செய்தி நகலெடுக்கப்பட்டது — WhatsApp-இல் ஒட்டவும் (Paste) மற்றும் Send ஐ தட்டவும்.";
+      } catch (e){
+        statusEl.textContent = "கிளிப்போர்டு போக்குவரத்து தோல்வி; கீழ் 'மூலத்தின்மேல் கிளிக்' பயன்படுத்தவும்.";
+      }
+    });
+
+    // show manual wa.me links
+    showLinksBtn.addEventListener('click', () => {
+      const text = buildMessageText();
+      const link1Url = makeWaLink(PHONE1, text);
+      const link2Url = makeWaLink(PHONE2, text);
+      link1.href = link1Url; link1.textContent = link1Url;
+      link2.href = link2Url; link2.textContent = link2Url;
+      fallback.style.display = 'block';
+      statusEl.textContent = "கைமுறை லிங்குகள் கீழே காணப்படுகின்றன.";
+    });
+
+    // main submit button tries to open both chats
+    submitBtn.addEventListener('click', tryOpenTwoChats);
   </script>
 </body>
-</html>
+</html>\
