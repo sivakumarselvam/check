@@ -1,122 +1,95 @@
 <!doctype html>
-<html lang="en">
+<html lang="ta">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Agalya Pickles — Quick Order</title>
+  <title>மாம்பழ ஊறுகாய் — உடனடி ஆர்டர்</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:16px; color:#222;}
-    h1{font-size:20px;margin-bottom:4px}
-    p.lead{color:#555;margin-top:0;margin-bottom:12px}
-    .product{padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-    label{flex:1;cursor:pointer}
-    input[type='text'], textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-top:6px}
-    .btn{background:#d35400;color:#fff;padding:10px 14px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
-    .small{font-size:13px;color:#666;margin-top:8px}
+    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:16px; color:#222; background:#fff}
+    .container{max-width:620px;margin:18px auto;padding:18px;border-radius:10px;border:1px solid #eee;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+    h1{font-size:22px;margin:6px 0 8px;text-align:center}
+    p.lead{color:#444;margin:0 0 14px;text-align:center;font-size:15px}
+    .product{padding:12px;border-radius:10px;border:1px solid #f0f0f0;background:#fff;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .product .info{flex:1}
+    .product .title{font-weight:700;font-size:16px}
+    .product .meta{color:#666;font-size:14px;margin-top:4px}
+    textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:8px;resize:vertical}
+    .btn{display:inline-block;background:#d35400;color:#fff;padding:12px 18px;border-radius:8px;border:none;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:12px}
+    .small{font-size:13px;color:#666;margin-top:10px;text-align:center}
     .link{color:#0b64c6;word-break:break-all}
+    #fallback{display:none;margin-top:12px;text-align:center}
   </style>
 </head>
 <body>
-  <h1>அகல்யா — Quick Order</h1>
-  <p class="lead">Select items, add details and press Submit — WhatsApp will open with your order ready to send.</p>
+  <div class="container" role="main" aria-labelledby="pageTitle">
+    <h1 id="pageTitle">மாம்பழ ஊறுகாய்</h1>
+    <p class="lead">ஒரே கிளிக் — உங்கள் ஆர்டர் தயார். எதையும் பகிர வேண்டாம்.</p>
 
-  <form id="orderForm" onsubmit="return submitOrder();">
-    <!-- Edit these product items as needed -->
-    <div class="product">
-      <input type="checkbox" id="p1" name="product" value="Mango Pickle - 250g | ₹120"/>
-      <label for="p1">Mango Pickle (மாங்காய் ஊறுகாய்) — 250g — ₹120</label>
+    <!-- Single product (mango pickle) — no selection required -->
+    <div class="product" aria-hidden="false">
+      <div class="info">
+        <div class="title">மாம்பழ ஊறுகாய்</div>
+        <div class="meta">250g — ₹120</div>
+      </div>
     </div>
 
-    <div class="product">
-      <input type="checkbox" id="p2" name="product" value="Lemon Pickle - 200g | ₹100"/>
-      <label for="p2">Lemon Pickle (எலுமிச்சை ஊறுகாய்) — 200g — ₹100</label>
+    <!-- Optional delivery address only (customer not required to give name or phone) -->
+    <label for="address" style="font-weight:600;color:#333">முகவரி / குறிப்பு (விரும்பின் மட்டும்)</label>
+    <textarea id="address" rows="3" placeholder="வீட்டு முகவரி, நகரம், PIN அல்லது குறிப்புகள் (விருப்பம்)"></textarea>
+
+    <div style="text-align:center">
+      <button class="btn" id="submitBtn" onclick="submitOrder()">ஆர்டர் அனுப்பு</button>
     </div>
 
-    <div class="product">
-      <input type="checkbox" id="p3" name="product" value="Mix Pickle - 500g | ₹220"/>
-      <label for="p3">Mix Pickle (மிக்ஸ்) — 500g — ₹220</label>
+    <p class="small">வாட்சாப்ப் தானாக திறக்கப்படும்; பிறகு 'Send'ஐ தட்டவும்.</p>
+
+    <div id="fallback">
+      <p class="small">WhatsApp திறக்கப்படவில்லை என்றால், கீழே உள்ள லிங்கை திறக்கவும் அல்லது நகலெடுத்து ஒட்டி அனுப்பவும்:</p>
+      <a id="waFallbackLink" class="link" target="_blank" rel="noopener"></a>
     </div>
-
-    <div style="margin-top:12px">
-      <label>Full name (பெயர்)</label>
-      <input type="text" id="name" placeholder="Your name" required/>
-    </div>
-
-    <div style="margin-top:8px">
-      <label>Phone (மொபைல்)</label>
-      <input type="text" id="phone" placeholder="+91-6364802223" required/>
-    </div>
-
-    <div style="margin-top:8px">
-      <label>Delivery address / Note (அணி)</label>
-      <textarea id="address" rows="3" placeholder="Street, city, PIN / any notes"></textarea>
-    </div>
-
-    <div style="margin-top:12px">
-      <button class="btn" type="submit">Submit to WhatsApp</button>
-    </div>
-
-    <p class="small">By submitting you will open WhatsApp to send this order. We will reply shortly.</p>
-  </form>
-
-  <p id="fallback" style="display:none;margin-top:12px">
-    If WhatsApp does not open automatically, open this link manually or copy it into your browser:
-    <br/><a id="waFallbackLink" class="link" target="_blank" rel="noopener"></a>
-  </p>
+  </div>
 
   <script>
-    // IMPORTANT: Replace with your phone number in international format (country code + number),
-    // no plus, no spaces. Example: "919812345678"
+    // PHONE is already provided (keep as-is). Must be digits only, country code + number.
     const PHONE = "916364802223";
 
     function submitOrder(){
-      const checked = Array.from(document.querySelectorAll('input[name="product"]:checked'))
-        .map(cb => cb.value);
-      if(checked.length === 0){
-        alert('Please select at least one product.');
-        return false;
-      }
-      const name = document.getElementById('name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
+      // Single product details (Tamil). No shop name included per request.
+      const product = "மாம்பழ ஊறுகாய் - 250g | ₹120";
+      const quantity = "1";
+
       const address = document.getElementById('address').value.trim();
 
-      // Build a plain text message; do NOT pre-encode newlines or spaces here.
-      let text = 'Order from Agalya Pickles\n\n';
-      text += 'Customer: ' + (name || '-') + '\n';
-      text += 'Contact: ' + (phone || '-') + '\n';
-      if(address) text += 'Address: ' + address + '\n';
-      text += '\nProducts:\n';
-      checked.forEach((item, i) => {
-        text += (i+1) + '. ' + item + '\n';
-      });
-      text += '\nPlease confirm payment & delivery.';
+      // Build minimal Tamil message; do NOT include shop name or ask for buyer name/phone.
+      let text = "ஆர்டர்:\n";
+      text += product + "\n";
+      text += "அளவு: " + quantity + "\n";
+      if(address) text += "முகவரி: " + address + "\n";
+      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.";
 
-      // URL-encode the full text once
       const encoded = encodeURIComponent(text);
 
-      // Validate PHONE
+      // Validate PHONE format
       if(!PHONE || PHONE.includes('+') || PHONE.includes(' ') || !/^\d+$/.test(PHONE)){
-        alert('Owner: please set the PHONE constant correctly in the HTML (digits only, e.g. 919812345678).');
-        return false;
+        alert('Owner: HTML கோப்பில் PHONE மாறியை சரியாக (எண்கள் மட்டும், உதாரணம்: 919812345678) அமைக்கவும்.');
+        return;
       }
 
       const waLink = `https://wa.me/${PHONE}?text=${encoded}`;
 
-      // Attempt to open WhatsApp
+      // Attempt to open WhatsApp (user action triggered by button click)
       try {
-        // For mobile browsers this will open the WhatsApp app
         window.location.href = waLink;
 
-        // Show fallback link after a short delay (in case redirect is blocked)
+        // Show fallback link after short delay (in case redirect blocked)
         setTimeout(() => {
           const fallback = document.getElementById('fallback');
           const fallbackLink = document.getElementById('waFallbackLink');
           fallbackLink.href = waLink;
           fallbackLink.textContent = waLink;
           fallback.style.display = 'block';
-        }, 1200);
+        }, 1000);
       } catch (e) {
-        // Show fallback link instantly if anything fails
         const fallback = document.getElementById('fallback');
         const fallbackLink = document.getElementById('waFallbackLink');
         fallbackLink.href = waLink;
@@ -124,7 +97,7 @@
         fallback.style.display = 'block';
       }
 
-      return false; // prevent normal form submit
+      return false;
     }
   </script>
 </body>
