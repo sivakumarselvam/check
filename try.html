@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Agalya Pickles — Quick Order</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:16px; color:#222;}
+    h1{font-size:20px;margin-bottom:4px}
+    p.lead{color:#555;margin-top:0;margin-bottom:12px}
+    .product{padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+    label{flex:1;cursor:pointer}
+    input[type='text'], textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-top:6px}
+    .btn{background:#d35400;color:#fff;padding:10px 14px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
+    .small{font-size:13px;color:#666;margin-top:8px}
+  </style>
+</head>
+<body>
+  <h1>அகல்யா — Quick Order</h1>
+  <p class="lead">Select items, add details and press Submit — WhatsApp will open with your order ready to send.</p>
+
+  <form id="orderForm" onsubmit="return submitOrder();">
+    <!-- Edit these product items as needed -->
+    <div class="product">
+      <input type="checkbox" id="p1" name="product" value="Mango Pickle - 250g | ₹120"/>
+      <label for="p1">Mango Pickle (மாங்காய் ஊறுகாய்) — 250g — ₹120</label>
+    </div>
+
+    <div class="product">
+      <input type="checkbox" id="p2" name="product" value="Lemon Pickle - 200g | ₹100"/>
+      <label for="p2">Lemon Pickle (எலுமிச்சை ஊறுகாய்) — 200g — ₹100</label>
+    </div>
+
+    <div class="product">
+      <input type="checkbox" id="p3" name="product" value="Mix Pickle - 500g | ₹220"/>
+      <label for="p3">Mix Pickle (மிக்ஸ்) — 500g — ₹220</label>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Full name (பெயர்)</label>
+      <input type="text" id="name" placeholder="Your name" required/>
+    </div>
+
+    <div style="margin-top:8px">
+      <label>Phone (மொபைல்)</label>
+      <input type="text" id="phone" placeholder="+91-9XXXXXXXXX" required/>
+    </div>
+
+    <div style="margin-top:8px">
+      <label>Delivery address / Note (அணி)</label>
+      <textarea id="address" rows="3" placeholder="Street, city, PIN / any notes"></textarea>
+    </div>
+
+    <div style="margin-top:12px">
+      <button class="btn" type="submit">Submit to WhatsApp</button>
+    </div>
+
+    <p class="small">By submitting you will open WhatsApp to send this order. We will reply shortly.</p>
+  </form>
+
+  <script>
+    // REPLACE with your phone number (country code + number), no plus, no spaces
+    const PHONE = "REPLACE_WITH_CC_AND_NUMBER"; // e.g., "919812345678"
+
+    function submitOrder(){
+      const checked = Array.from(document.querySelectorAll('input[name="product"]:checked'))
+        .map(cb => cb.value);
+      if(checked.length === 0){
+        alert('Please select at least one product.');
+        return false;
+      }
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+
+      let text = `Order from Agalya Pickles%0A%0A`;
+      text += `Customer: ${encodeURIComponent(name)}%0A`;
+      text += `Contact: ${encodeURIComponent(phone)}%0A`;
+      if(address) text += `Address: ${encodeURIComponent(address)}%0A`;
+      text += `%0AProducts:%0A`;
+      checked.forEach((item, i) => {
+        text += `${i+1}. ${encodeURIComponent(item)}%0A`;
+      });
+      text += `%0APlease confirm payment & delivery.`;
+
+      // Open WhatsApp chat via wa.me
+      const waLink = `https://wa.me/${PHONE}?text=${text}`;
+      window.location.href = waLink;
+      return false; // prevent normal form submit
+    }
+  </script>
+</body>
+</html>
