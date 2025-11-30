@@ -13,6 +13,7 @@
     input[type='text'], textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-top:6px}
     .btn{background:#d35400;color:#fff;padding:10px 14px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
     .small{font-size:13px;color:#666;margin-top:8px}
+    .link{color:#0b64c6;word-break:break-all}
   </style>
 </head>
 <body>
@@ -43,7 +44,7 @@
 
     <div style="margin-top:8px">
       <label>Phone (மொபைல்)</label>
-      <input type="text" id="phone" placeholder="+91-9XXXXXXXXX" required/>
+      <input type="text" id="phone" placeholder="+91-6364802223" required/>
     </div>
 
     <div style="margin-top:8px">
@@ -58,9 +59,15 @@
     <p class="small">By submitting you will open WhatsApp to send this order. We will reply shortly.</p>
   </form>
 
+  <p id="fallback" style="display:none;margin-top:12px">
+    If WhatsApp does not open automatically, open this link manually or copy it into your browser:
+    <br/><a id="waFallbackLink" class="link" target="_blank" rel="noopener"></a>
+  </p>
+
   <script>
-    // REPLACE with your phone number (country code + number), no plus, no spaces
-    const PHONE = "REPLACE_WITH_CC_AND_NUMBER"; // e.g., "919812345678"
+    // IMPORTANT: Replace with your phone number in international format (country code + number),
+    // no plus, no spaces. Example: "919812345678"
+    const PHONE = "916364802223";
 
     function submitOrder(){
       const checked = Array.from(document.querySelectorAll('input[name="product"]:checked'))
@@ -73,19 +80,50 @@
       const phone = document.getElementById('phone').value.trim();
       const address = document.getElementById('address').value.trim();
 
-      let text = `Order from Agalya Pickles%0A%0A`;
-      text += `Customer: ${encodeURIComponent(name)}%0A`;
-      text += `Contact: ${encodeURIComponent(phone)}%0A`;
-      if(address) text += `Address: ${encodeURIComponent(address)}%0A`;
-      text += `%0AProducts:%0A`;
+      // Build a plain text message; do NOT pre-encode newlines or spaces here.
+      let text = 'Order from Agalya Pickles\n\n';
+      text += 'Customer: ' + (name || '-') + '\n';
+      text += 'Contact: ' + (phone || '-') + '\n';
+      if(address) text += 'Address: ' + address + '\n';
+      text += '\nProducts:\n';
       checked.forEach((item, i) => {
-        text += `${i+1}. ${encodeURIComponent(item)}%0A`;
+        text += (i+1) + '. ' + item + '\n';
       });
-      text += `%0APlease confirm payment & delivery.`;
+      text += '\nPlease confirm payment & delivery.';
 
-      // Open WhatsApp chat via wa.me
-      const waLink = `https://wa.me/${PHONE}?text=${text}`;
-      window.location.href = waLink;
+      // URL-encode the full text once
+      const encoded = encodeURIComponent(text);
+
+      // Validate PHONE
+      if(!PHONE || PHONE.includes('+') || PHONE.includes(' ') || !/^\d+$/.test(PHONE)){
+        alert('Owner: please set the PHONE constant correctly in the HTML (digits only, e.g. 919812345678).');
+        return false;
+      }
+
+      const waLink = `https://wa.me/${PHONE}?text=${encoded}`;
+
+      // Attempt to open WhatsApp
+      try {
+        // For mobile browsers this will open the WhatsApp app
+        window.location.href = waLink;
+
+        // Show fallback link after a short delay (in case redirect is blocked)
+        setTimeout(() => {
+          const fallback = document.getElementById('fallback');
+          const fallbackLink = document.getElementById('waFallbackLink');
+          fallbackLink.href = waLink;
+          fallbackLink.textContent = waLink;
+          fallback.style.display = 'block';
+        }, 1200);
+      } catch (e) {
+        // Show fallback link instantly if anything fails
+        const fallback = document.getElementById('fallback');
+        const fallbackLink = document.getElementById('waFallbackLink');
+        fallbackLink.href = waLink;
+        fallbackLink.textContent = waLink;
+        fallback.style.display = 'block';
+      }
+
       return false; // prevent normal form submit
     }
   </script>
