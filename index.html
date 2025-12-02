@@ -1,198 +1,31 @@
-serv<!doctype html>
+<!doctype html>
 <html lang="ta">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>மாங்காய் ஊறுகாய் — உடனடி ஆர்டர்</title>
-  <style>
-    :root{--accent:#d35400}
-    body{font-family:system-ui,-apple-system,Segoe UI, Roboto; padding:20px; color:#111; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh}
-    .card{width:100%;max-width:520px;border-radius:12px;padding:20px;border:1px solid #eee;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
-    h1{font-size:24px;margin:4px 0 6px;text-align:center}
-    p.lead{color:#555;margin:0 0 14px;text-align:center;font-size:15px}
-    .product{padding:12px;border-radius:10px;border:1px solid #f5f5f5;background:#fff;display:flex;align-items:center;gap:12px;margin-bottom:12px}
-    .product .info{flex:1}
-    .product .title{font-weight:800;font-size:18px}
-    .product .meta{color:#666;font-size:14px;margin-top:6px}
-    .qty-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px}
-    .qty-btn{width:44px;height:44px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:20px;cursor:pointer}
-    .qty-display{min-width:140px;text-align:center;font-weight:700;font-size:16px}
-    textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:10px;resize:vertical}
-    .btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 18px;border-radius:8px;border:none;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:14px;width:100%}
-    .small{font-size:13px;color:#666;margin-top:10px;text-align:center}
-    .link{color:#0b64c6;word-break:break-all}
-    #fallback{display:none;margin-top:12px;text-align:center}
-    #status{margin-top:12px;text-align:center;font-weight:700}
-    .actions{display:flex;gap:8px;margin-top:10px}
-    .actions button{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
-    @media (max-width:420px){ .qty-display{min-width:110px} h1{font-size:20px} .actions{flex-direction:column} }
-  </style>
+  <style>/* ... your CSS ... */</style>
 </head>
 <body>
-  <div class="card" role="main" aria-labelledby="pageTitle">
-    <h1 id="pageTitle">மாங்காய் ஊறுகாய்</h1>
-    <p class="lead">அளவு அடிப்படை: 5 கிலோ. எண்ணிக்கை அதிகமா? '+' அழுத்தி கூட்டவும். எதையும் பகிர வேண்டாம்.</p>
-
-    <div class="product" aria-hidden="false">
-      <div class="info">
-        <div class="title">மாங்காய் ஊறுகாய்</div>
-        <div class="meta">ஒன்றின் அளவு: 5 கிலோ</div>
-      </div>
-    </div>
-
-    <!-- Quantity controls: each unit = 5 KG -->
-    <div style="margin-top:6px; text-align:center;">
-      <label for="qty" style="font-weight:700;color:#333;display:block;margin-bottom:8px">அளவு தேர்வு (கிலோகிராம்)</label>
-      <div class="qty-row" role="group" aria-label="அளவு">
-        <button id="decr" class="qty-btn" aria-label="குறைக்க" title="குறைக்க">−</button>
-        <div class="qty-display" id="qtyDisplay" aria-live="polite">5 கிலோ</div>
-        <button id="incr" class="qty-btn" aria-label="சேர்க்க" title="சேர்க்க">＋</button>
-      </div>
-      <div style="margin-top:8px;text-align:center;color:#666;font-size:13px">குறைந்தபட்சம் 5 கிலோ. ஒவ்வொரு கிளிக் 5 கிலோ ஆகும்.</div>
-    </div>
-
-    <!-- Optional delivery address only (not required) -->
-    <label for="address" style="font-weight:600;color:#333;display:block;margin-top:14px">முகவரி / குறிப்பு (விரும்பின் மட்டும்)</label>
-    <textarea id="address" rows="3" placeholder="வீட்டு முகவரி, நகரம், PIN அல்லது குறிப்புகள் (விருப்பம்)"></textarea>
-
-    <div style="margin-top:12px">
-      <button class="btn" id="submitBtn">ஆர்டர் அனுப்பு</button>
-    </div>
-
-    <div class="actions" aria-hidden="false">
-      <button id="copyMsgBtn" title="செய்தியை நகலெடுக்க">செய்தியை நகலெடுக்க</button>
-      <button id="showLinksBtn" title="கைமுறை லிங்குகளை காண்பி">மூலத்தின்மேல் கிளிக்</button>
-    </div>
-
-    <p class="small">குறிப்பு: இந்த HTML-ல் எந்தவொரு தொலைபேசி எண்ணும் (PHONE) நேரடியாக இல்லை — அது உங்கள் சர்வர்/பண்பகுதியில் அமைவாகும். 'ஆர்டர் அனுப்பு' அழுத்தும்போது இந்த பக்கம் உங்கள் சேவையகத்திற்கு (இங்கே SERVER_ENDPOINT) POST செய்யும்; சேவையகமும் GitHub Secret (PHONE) பயன்படுத்தி இரு இலக்கங்களுக்கு தகவலை அனுப்பும்.</p>
-
-    <div id="status" role="status" aria-live="polite"></div>
-
-    <div id="fallback">
-      <p class="small">மனுவல் லிங்குகள் தேவைப்பட்டால் சேவையகமானது அவற்றை தரும் அல்லது கீழ் ஐடியைக் காப்பி செய்து ஆதரவுக்கு அனுப்பவும்.</p>
-      <div><a id="waLink" class="link" target="_blank" rel="noopener"></a></div>
-    </div>
-  </div>
-
+  <!-- (Use your existing HTML UI) -->
+  <!-- IMPORTANT: set SERVER_ENDPOINT to your Vercel app URL after deployment -->
   <script>
-    // =========================
-    // CONFIGURATION (edit only SERVER_ENDPOINT)
-    // Deploy a server-side endpoint that uses GitHub secret PHONE (or two secrets) to send WhatsApp messages.
-    // Example endpoint behavior:
-    //  - POST /api/send-order  with JSON { product, kg, address }
-    //  - Server reads PHONE/PHONE2 from env (GitHub secret) and sends messages to both numbers (via Twilio/BSP or redirects)
-    // Set SERVER_ENDPOINT to your deployed serverless function or server URL (no trailing slash).
-    // =========================
-    const SERVER_ENDPOINT = "https://github.com/sivakumarselvam/check/index.html"; // e.g. https://example.vercel.app/api/send-order
+    // Replace after deployment, e.g. "https://my-app.vercel.app"
+    const SERVER_ENDPOINT = "https://your-vercel-app.vercel.app";
 
-    // Quantity logic
-    let units = 1;
-    const UNIT_KG = 5;
-
-    const qtyDisplay = document.getElementById('qtyDisplay');
-    const incrBtn = document.getElementById('incr');
-    const decrBtn = document.getElementById('decr');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusEl = document.getElementById('status');
-    const fallback = document.getElementById('fallback');
-    const waLink = document.getElementById('waLink');
-    const copyMsgBtn = document.getElementById('copyMsgBtn');
-    const showLinksBtn = document.getElementById('showLinksBtn');
-
-    function renderQty(){
-      const kg = units * UNIT_KG;
-      qtyDisplay.textContent = `${kg} கிலோ`;
-      decrBtn.disabled = units <= 1;
-      decrBtn.style.opacity = units <= 1 ? 0.5 : 1;
-    }
-    incrBtn.addEventListener('click', () => { units += 1; renderQty(); });
-    decrBtn.addEventListener('click', () => { if(units > 1){ units -= 1; renderQty(); } });
-    renderQty();
-
-    function buildMessageText(){
-      const product = "மாங்காய் ஊறுகாய்";
-      const totalKg = units * UNIT_KG;
-      const address = document.getElementById('address').value.trim();
-
-      let text = "ஆர்டர்:\n";
-      text += product + "\n";
-      text += "அளவு: " + totalKg + " கிலோ\n";
-      if(address) text += "முகவரி: " + address + "\n";
-      text += "\nதயவு செய்து விநியோகமும் தொகையும் உறுதிசெய்க.";
-      return text;
+    async function submitToServer(payload) {
+      const url = SERVER_ENDPOINT.replace(/\/$/, '') + '/api/send-order';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return res;
     }
 
-    // Attempt to POST to your server endpoint which must handle sending to two numbers.
-    async function submitToServer(){
-      if(!SERVER_ENDPOINT || SERVER_ENDPOINT.includes("YOUR_SERVER_DOMAIN_OR_FUNCTION")){
-        alert('Owner: தயவு செய்து SERVER_ENDPOINT மதிப்பை உங்கள் சர்வர் URL ஆக மாற்றி விடுங்கள் (HTML உள்ளேயே இல்லை).');
-        return;
-      }
-
-      const product = "மாங்காய் ஊறுகாய்";
-      const kg = units * UNIT_KG;
-      const address = document.getElementById('address').value.trim();
-
-      const payload = { product, kg, address };
-
-      try {
-        statusEl.textContent = "ஆர்டர் அனுப்பப்படுகிறது… தயவு செய்து காத்திருங்கள்";
-        submitBtn.disabled = true;
-
-        const res = await fetch(`${SERVER_ENDPOINT}/api/send-order`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          credentials: 'omit'
-        });
-
-        if(!res.ok){
-          const txt = await res.text().catch(()=>null);
-          throw new Error(txt || 'சேவையகத்தில் பிழை நடந்தது');
-        }
-
-        const json = await res.json().catch(()=>null);
-        statusEl.textContent = "ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது. நன்றி!";
-        // Optionally show a manual wa.me link returned by server for user's record:
-        if(json && json.fallbackLinks && json.fallbackLinks.length){
-          waLink.href = json.fallbackLinks[0];
-          waLink.textContent = json.fallbackLinks[0];
-          fallback.style.display = 'block';
-        }
-      } catch (err){
-        console.error(err);
-        statusEl.textContent = "சேவை செயல்பாட்டில் பிழை — கீழ் மானுவல் லிங்கைப் பார்க்கவும்.";
-        // Optionally show manual encoded message as a fallback (no phone exposed, server should provide real links)
-        waLink.href = "#";
-        waLink.textContent = "சேவையக பிழை: ஆதரவை தொடர்பு கொள்ளவும்.";
-        fallback.style.display = 'block';
-      } finally {
-        submitBtn.disabled = false;
-      }
-    }
-
-    // copy message text to clipboard
-    copyMsgBtn.addEventListener('click', async () => {
-      try {
-        const text = buildMessageText();
-        await navigator.clipboard.writeText(text);
-        statusEl.textContent = "செய்தி நகலெடுக்கப்பட்டது — WhatsApp-இல் ஒட்டவும் (Paste) மற்றும் Send ஐ தட்டவும்.";
-      } catch (e){
-        statusEl.textContent = "கோப்புறம் செயல்படவில்லை; மானுவல் கிளிக் பயன்படுத்தவும்.";
-      }
-    });
-
-    // If you need to display manual wa.me links locally, this creates placeholder links with no phone.
-    // The real wa.me links (with phone numbers) must be returned by your server so phones are not in HTML.
-    showLinksBtn.addEventListener('click', () => {
-      waLink.href = "#";
-      waLink.textContent = "உங்கள் சேவையகம் வழியாக நிர்வகிக்கப்படும் மானுவல் லிங்குகள் இங்கு தோறும்.";
-      fallback.style.display = 'block';
-      statusEl.textContent = "சேவையக URL ஐ அமைத்த பிறகு 'மோலத்தின்மேல் கிளிக்' புகுப்பதிவுகள் உண்மையான wa.me லிங்குகளை காண்பிக்கும்.";
-    });
-
-    // main submit button tries to POST to the server which will send to two numbers server-side
-    submitBtn.addEventListener('click', submitToServer);
+    // Hook this into your existing submit handler:
+    // submitToServer({ product: "...", kg: 10, address: "..." })
+    //   .then(r => r.json()).then(j => { /* show fallback links or status */ });
   </script>
 </body>
 </html>
