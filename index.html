@@ -60,27 +60,30 @@
     </div>
 
     <div class="actions" aria-hidden="false">
-      <button id="copyMsgBtn" title="செய்கை செய்தியை நகலெடுக்க">செய்தியை நகலெடுக்க</button>
+      <button id="copyMsgBtn" title="செய்தியை நகலெடுக்க">செய்தியை நகலெடுக்க</button>
       <button id="showLinksBtn" title="கைமுறை லிங்குகளை காண்பி">மூலத்தின்மேல் கிளிக்</button>
     </div>
 
-    <p class="small">குறிப்பு: கீழே உள்ளது பயனர்-பக்கம் மட்டும். இரண்டு வாட்ஸ்அப் நம்பர்களுக்கும் குறு-வருகை திறக்க முயற்சிக்கப்படும்; சில மொபைல் உலாவிகள் popup-ஐ தடை செய்தால் இரண்டாவது சாட் தானாக திறக்கப்படாது. (பயனர் ஒவ்வொரு சாட்டிலும் 'Send' தட்ட வேண்டும்)</p>
+    <p class="small">குறிப்பு: இந்த HTML-ல் எந்தவொரு தொலைபேசி எண்ணும் (PHONE) நேரடியாக இல்லை — அது உங்கள் சர்வர்/பண்பகுதியில் அமைவாகும். 'ஆர்டர் அனுப்பு' அழுத்தும்போது இந்த பக்கம் உங்கள் சேவையகத்திற்கு (இங்கே SERVER_ENDPOINT) POST செய்யும்; சேவையகமும் GitHub Secret (PHONE) பயன்படுத்தி இரு இலக்கங்களுக்கு தகவலை அனுப்பும்.</p>
 
     <div id="status" role="status" aria-live="polite"></div>
 
     <div id="fallback">
-      <p class="small">மனுவல் லிங்குகள் (தொலைபேசி மாற்றங்கள் செய்ய PHONE1/PHONE2 மதிப்புகளை நிரலிலே மாற்றவும்):</p>
-      <div><a id="link1" class="link" target="_blank" rel="noopener"></a></div>
-      <div style="margin-top:6px"><a id="link2" class="link" target="_blank" rel="noopener"></a></div>
+      <p class="small">மனுவல் லிங்குகள் தேவைப்பட்டால் சேவையகமானது அவற்றை தரும் அல்லது கீழ் ஐடியைக் காப்பி செய்து ஆதரவுக்கு அனுப்பவும்.</p>
+      <div><a id="waLink" class="link" target="_blank" rel="noopener"></a></div>
     </div>
   </div>
 
   <script>
-    // === IMPORTANT: Replace these two phone values with the two target numbers you want to notify.
-    // Use international format digits only (country code + number), no '+' and no spaces.
-    // Example: "919812345678"
-    const PHONE1 = "916364802223"; // first target (your original)
-    const PHONE2 = "919448509719"; // second target: replace this
+    // =========================
+    // CONFIGURATION (edit only SERVER_ENDPOINT)
+    // Deploy a server-side endpoint that uses GitHub secret PHONE (or two secrets) to send WhatsApp messages.
+    // Example endpoint behavior:
+    //  - POST /api/send-order  with JSON { product, kg, address }
+    //  - Server reads PHONE/PHONE2 from env (GitHub secret) and sends messages to both numbers (via Twilio/BSP or redirects)
+    // Set SERVER_ENDPOINT to your deployed serverless function or server URL (no trailing slash).
+    // =========================
+    const SERVER_ENDPOINT = "https://YOUR_SERVER_DOMAIN_OR_FUNCTION"; // e.g. https://example.vercel.app/api/send-order
 
     // Quantity logic
     let units = 1;
@@ -92,8 +95,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const statusEl = document.getElementById('status');
     const fallback = document.getElementById('fallback');
-    const link1 = document.getElementById('link1');
-    const link2 = document.getElementById('link2');
+    const waLink = document.getElementById('waLink');
     const copyMsgBtn = document.getElementById('copyMsgBtn');
     const showLinksBtn = document.getElementById('showLinksBtn');
 
@@ -103,7 +105,6 @@
       decrBtn.disabled = units <= 1;
       decrBtn.style.opacity = units <= 1 ? 0.5 : 1;
     }
-
     incrBtn.addEventListener('click', () => { units += 1; renderQty(); });
     decrBtn.addEventListener('click', () => { if(units > 1){ units -= 1; renderQty(); } });
     renderQty();
@@ -121,67 +122,77 @@
       return text;
     }
 
-    function makeWaLink(phone, text){
-      // phone should be digits only (country code + number)
-      return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-    }
-
-    async function tryOpenTwoChats(){
-      // Validate PHONEs
-      if(!/^\d+$/.test(PHONE1) || !/^\d+$/.test(PHONE2) || PHONE2 === "REPLACE_WITH_SECOND_NUMBER"){
-        alert('Owner: தயவு செய்து PHONE1 மற்றும் PHONE2 ஆகியவற்றை HTML இல் எண்களாகச் சரியாக அமைக்கவும் (உதா: 919812345678).');
+    // Attempt to POST to your server endpoint which must handle sending to two numbers.
+    async function submitToServer(){
+      if(!SERVER_ENDPOINT || SERVER_ENDPOINT.includes("YOUR_SERVER_DOMAIN_OR_FUNCTION")){
+        alert('Owner: தயவு செய்து SERVER_ENDPOINT மதிப்பை உங்கள் சர்வர் URL ஆக மாற்றி விடுங்கள் (HTML உள்ளேயே இல்லை).');
         return;
       }
 
-      const text = buildMessageText();
-      const link1Url = makeWaLink(PHONE1, text);
-      const link2Url = makeWaLink(PHONE2, text);
+      const product = "மாங்காய் ஊறுகாய்";
+      const kg = units * UNIT_KG;
+      const address = document.getElementById('address').value.trim();
 
-      statusEl.textContent = "வாட்ஸ்அப்புகள் திறக்கப்படுகின்றன — ஒவ்வொரு சாட்-இலும் Send தட்ட நினைவில் வையுங்கள்...";
-      // Attempt to open second chat in a new tab/window first (may be blocked)
+      const payload = { product, kg, address };
+
       try {
-        const w = window.open(link2Url, '_blank');
-        // Redirect this tab to first chat (this typically opens WhatsApp app)
-        window.location.href = link1Url;
-        // Show fallback links after short delay in case popup blocked
-        setTimeout(() => {
-          link1.href = link1Url; link1.textContent = link1Url;
-          link2.href = link2Url; link2.textContent = link2Url;
+        statusEl.textContent = "ஆர்டர் அனுப்பப்படுகிறது… தயவு செய்து காத்திருங்கள்";
+        submitBtn.disabled = true;
+
+        const res = await fetch(`${SERVER_ENDPOINT}/api/send-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'omit'
+        });
+
+        if(!res.ok){
+          const txt = await res.text().catch(()=>null);
+          throw new Error(txt || 'சேவையகத்தில் பிழை நடந்தது');
+        }
+
+        const json = await res.json().catch(()=>null);
+        statusEl.textContent = "ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது. நன்றி!";
+        // Optionally show a manual wa.me link returned by server for user's record:
+        if(json && json.fallbackLinks && json.fallbackLinks.length){
+          waLink.href = json.fallbackLinks[0];
+          waLink.textContent = json.fallbackLinks[0];
           fallback.style.display = 'block';
-        }, 900);
-      } catch (e) {
-        // If anything fails, show links for manual use
-        link1.href = link1Url; link1.textContent = link1Url;
-        link2.href = link2Url; link2.textContent = link2Url;
+        }
+      } catch (err){
+        console.error(err);
+        statusEl.textContent = "சேவை செயல்பாட்டில் பிழை — கீழ் மானுவல் லிங்கைப் பார்க்கவும்.";
+        // Optionally show manual encoded message as a fallback (no phone exposed, server should provide real links)
+        waLink.href = "#";
+        waLink.textContent = "சேவையக பிழை: ஆதரவை தொடர்பு கொள்ளவும்.";
         fallback.style.display = 'block';
-        statusEl.textContent = "தொலைபேசி உலாவி சில popup-ஐ தடுத்தது; கீழ் லிங்குகளைத் திறக்கவும்.";
+      } finally {
+        submitBtn.disabled = false;
       }
     }
 
-    // copy message text to clipboard (for user convenience)
+    // copy message text to clipboard
     copyMsgBtn.addEventListener('click', async () => {
       try {
         const text = buildMessageText();
         await navigator.clipboard.writeText(text);
         statusEl.textContent = "செய்தி நகலெடுக்கப்பட்டது — WhatsApp-இல் ஒட்டவும் (Paste) மற்றும் Send ஐ தட்டவும்.";
       } catch (e){
-        statusEl.textContent = "கிளிப்போர்டு போக்குவரத்து தோல்வி; கீழ் 'மூலத்தின்மேல் கிளிக்' பயன்படுத்தவும்.";
+        statusEl.textContent = "கோப்புறம் செயல்படவில்லை; மானுவல் கிளிக் பயன்படுத்தவும்.";
       }
     });
 
-    // show manual wa.me links
+    // If you need to display manual wa.me links locally, this creates placeholder links with no phone.
+    // The real wa.me links (with phone numbers) must be returned by your server so phones are not in HTML.
     showLinksBtn.addEventListener('click', () => {
-      const text = buildMessageText();
-      const link1Url = makeWaLink(PHONE1, text);
-      const link2Url = makeWaLink(PHONE2, text);
-      link1.href = link1Url; link1.textContent = link1Url;
-      link2.href = link2Url; link2.textContent = link2Url;
+      waLink.href = "#";
+      waLink.textContent = "உங்கள் சேவையகம் வழியாக நிர்வகிக்கப்படும் மானுவல் லிங்குகள் இங்கு தோறும்.";
       fallback.style.display = 'block';
-      statusEl.textContent = "கைமுறை லிங்குகள் கீழே காணப்படுகின்றன.";
+      statusEl.textContent = "சேவையக URL ஐ அமைத்த பிறகு 'மோலத்தின்மேல் கிளிக்' புகுப்பதிவுகள் உண்மையான wa.me லிங்குகளை காண்பிக்கும்.";
     });
 
-    // main submit button tries to open both chats
-    submitBtn.addEventListener('click', tryOpenTwoChats);
+    // main submit button tries to POST to the server which will send to two numbers server-side
+    submitBtn.addEventListener('click', submitToServer);
   </script>
 </body>
-</html>\
+</html>
